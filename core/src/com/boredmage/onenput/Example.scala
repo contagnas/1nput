@@ -24,5 +24,8 @@ case object Ace extends Rank
 case class Card(rank: Rank, suit: Suit)
 
 object Example extends App {
-  println(Onenput[List[Card]].prompt())
+  println(Onenput[List[Card]].prompt(Some(Set(
+    List(Card(Queen, Diamonds)),
+    List(Card(King, Spades), Card(Two, Clubs))
+  ))))
 }
