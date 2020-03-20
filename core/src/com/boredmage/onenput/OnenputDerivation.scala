@@ -1,7 +1,6 @@
 package com.boredmage.onenput
 
 import magnolia.{CaseClass, Magnolia, SealedTrait}
-import cats.implicits._
 
 import scala.io.StdIn
 import scala.language.experimental.macros
@@ -13,11 +12,15 @@ trait OnenputDerivation {
       if (caseClass.parameters.isEmpty)
         Some(caseClass.rawConstruct(Nil))
       else {
-        val params = caseClass.parameters.toList.map { p =>
-          val possibleParams = possibleValueSet.map(_.map(p.dereference))
-          p.typeclass.retryPathedPrompt(p.label :: label, possibleParams)
+        val (params, _) = caseClass.parameters.toList.foldLeft((List.empty[Any], possibleValueSet)) { case ((ps, pvs), p) =>
+          val possibleParams = pvs.map(_.map(p.dereference))
+          val param: p.PType = p.typeclass.retryPathedPrompt(p.label :: label, possibleParams)
+          val newPvs = pvs.map(_.filter(v => p.dereference(v) == param))
+          val newParams = param :: ps
+          (newParams, newPvs)
         }
-        Some(caseClass.rawConstruct(params))
+
+        Some(caseClass.rawConstruct(params.reverse))
       }
 
   def dispatch[T](sealedTrait: SealedTrait[Typeclass, T]): Typeclass[T] =
