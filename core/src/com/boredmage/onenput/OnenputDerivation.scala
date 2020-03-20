@@ -13,14 +13,15 @@ trait OnenputDerivation {
       if (caseClass.parameters.isEmpty)
         Some(caseClass.rawConstruct(Nil))
       else {
-        caseClass.parameters.toList.map { p =>
-          p.typeclass.pathedPrompt(p.label :: label)
-        }.sequence.map(caseClass.rawConstruct)
+        val params = caseClass.parameters.toList.map { p =>
+          p.typeclass.retryPathedPrompt(p.label :: label)
+        }
+        Some(caseClass.rawConstruct(params))
       }
   }
 
   def dispatch[T](sealedTrait: SealedTrait[Typeclass, T]): Typeclass[T] = new Typeclass[T] {
-    override def pathedPrompt(label: List[String] = Nil): Option[T] = {
+    override def pathedPrompt(label: List[String]): Option[T] = {
       val labelToSubtype = sealedTrait.subtypes.map(s => s.typeName.short.toLowerCase() -> s).toMap
       val labels = sealedTrait.subtypes.map(s => s.typeName.short)
 
